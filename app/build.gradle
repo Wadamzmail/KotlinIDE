@@ -65,6 +65,10 @@ android {
         }
     }
     
+    packagingOptions {
+            exclude 'kotlin/concurrent/atomics/atomics.kotlin_builtins'
+     }
+    
 }
 
 dependencies {
