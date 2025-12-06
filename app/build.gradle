@@ -80,6 +80,8 @@ dependencies {
     implementation libs.soraEditor.textmate
     implementation libs.soraEditor.lsp
 	
+	implementation(libs.org.eclipse.lsp4j.lsp4j)
+    implementation(libs.org.eclipse.lsp4j.jsonrpc) 
     
 }
 
