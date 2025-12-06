@@ -1,6 +1,6 @@
 [versions]
 agp = "8.13.1"
-kotlin = "2.1.0"
+kotlin = "2.2.0"
 coreKtx = "1.17.0"
 appcompat = "1.7.1"
 material = "1.13.0"
@@ -79,4 +79,4 @@ asm = { module = "org.ow2.asm:asm", version = "9.7.1" }
 #Common
 common-antlr4 = { module = "org.antlr:antlr4", version.ref = "antlr4" }
 common-antlr4-runtime = { module = "org.antlr:antlr4-runtime", version.ref = "antlr4" }
-common-jsonrpc = { module = "org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc", version = "0.24.0" }
+common-jsonrpc = { module = "org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc", version.ref = "lsp4jVersion" }

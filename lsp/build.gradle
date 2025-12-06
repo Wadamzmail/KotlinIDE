@@ -21,8 +21,9 @@ dependencies {
     implementation(libs.org.eclipse.lsp4j.jsonrpc) 
     
     implementation(libs.com.github.fwcd.ktfmt)
+    implementation(libs.google.java.format)
     implementation(libs.com.google.guava.guava)
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    api fileTree(dir: 'libs', include: ['*.jar'])
     
     implementation(libs.com.beust.jcommander)
     implementation(libs.com.jetbrains.intellij.java.decompiler)
