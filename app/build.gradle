@@ -67,6 +67,7 @@ android {
     
     packagingOptions {
             exclude 'kotlin/concurrent/atomics/atomics.kotlin_builtins'
+            exclude 'kotlin/coroutines/coroutines.kotlin_builtins'
      }
     
 }
