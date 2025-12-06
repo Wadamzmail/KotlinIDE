@@ -56,9 +56,14 @@ android {
         viewBinding = true
     }
     
-    packagingOptions {
-        pickFirst "kotlin/concurrent/atomics/atomics.kotlin_builtins"
-    } 
+    packaging {
+        resources {
+            excludes += [
+                "kotlin/**/kotlin_builtins",
+                "kotlin/**/kotlin_metadata"
+            ]
+        }
+    }
     
 }
 
