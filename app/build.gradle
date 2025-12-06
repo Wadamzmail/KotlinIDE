@@ -70,6 +70,8 @@ android {
             exclude 'kotlin/concurrent/atomics/atomics.kotlin_builtins'
             exclude 'kotlin/coroutines/coroutines.kotlin_builtins'
             exclude 'kotlin/kotlin.kotlin_builtins'
+            exclude 'kotlin/reflect/reflect.kotlin_builtins'
+            exclude '**/*.kotlin_builtins'
      }
     
 }
