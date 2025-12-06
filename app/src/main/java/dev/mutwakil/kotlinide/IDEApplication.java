@@ -19,6 +19,8 @@ public class IDEApplication extends Application {
         .logErrorOnRestart(true)
         .trackActivities(true)
         .apply();
+        
+        Logger.initialize(this);
 
     FileProviderRegistry.getInstance()
         .addFileProvider(new AssetsFileResolver(getApplicationContext().getAssets()));
