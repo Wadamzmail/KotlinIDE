@@ -32,7 +32,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run:  ./gradlew clean && ./gradlew assembleDebug --warning-mode all
+        run: ./gradlew assembleDebug --warning-mode all
         env:
          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
