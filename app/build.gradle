@@ -60,7 +60,8 @@ android {
         resources {
             excludes += [
                 "kotlin/**/kotlin_builtins",
-                "kotlin/**/kotlin_metadata"
+                "kotlin/**/kotlin_metadata", 
+                "kotlin/*"
             ]
         }
     }
@@ -68,6 +69,7 @@ android {
     packagingOptions {
             exclude 'kotlin/concurrent/atomics/atomics.kotlin_builtins'
             exclude 'kotlin/coroutines/coroutines.kotlin_builtins'
+            exclude 'kotlin/kotlin.kotlin_builtins'
      }
     
 }
