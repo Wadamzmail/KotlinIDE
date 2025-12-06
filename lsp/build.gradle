@@ -1,0 +1,22 @@
+plugins {
+  id 'java-library'
+  // Java module - no additional plugin needed
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+  }
+
+dependencies {
+  // Core Android dependencies
+  implementation 'androidx.annotation:annotation:1.7.0'
+  implementation fileTree(dir: 'libs', include: ['*.jar','*.aar'])
+   // Kotlin compiler for Kotlin LSP
+  implementation(libs.kotlin.compiler.embeddable)
+  implementation(libs.kotlin.scripting.compiler.embeddable)
+  implementation(libs.asm)
+ // LSP4J dependencies for kotlin-language-server integration
+ /* implementation(libs.org.eclipse.lsp4j.lsp4j)
+  implementation(libs.org.eclipse.lsp4j.jsonrpc)*/
+}

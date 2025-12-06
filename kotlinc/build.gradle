@@ -1,0 +1,13 @@
+plugins {
+  id 'java-library'
+  // Java module - no additional plugin needed
+}
+
+ 
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+dependencies {
+   implementation 'androidx.annotation:annotation:1.7.0'
+}
