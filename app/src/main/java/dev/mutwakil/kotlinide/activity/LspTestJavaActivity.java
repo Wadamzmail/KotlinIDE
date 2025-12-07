@@ -44,6 +44,7 @@ import dev.mutwakil.kotlinide.databinding.ActivityEditorBinding;
 import io.github.rosemoe.sora.widget.CodeEditor;
 import io.github.rosemoe.sora.widget.schemes.EditorColorScheme;
 import io.github.rosemoe.sora.widget.schemes.SchemeDarcula;
+import java.util.Arrays;
 import org.eclipse.lsp4j.DidChangeWorkspaceFoldersParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.MessageParams;
@@ -189,7 +190,7 @@ public class LspTestJavaActivity extends AppCompatActivity {
 
     runOnUiThread(
         () -> {
-          lspEditor = lspProject.createEditor("$projectPath/sample.kt");
+          lspEditor = lspProject.createEditor(projectPath+"/sample.kt");
 
           var wrapperLanguage = createTextMateLanguage();
           lspEditor.setWrapperLanguage(wrapperLanguage);
@@ -218,7 +219,7 @@ public class LspTestJavaActivity extends AppCompatActivity {
       changeWorkspaceFoldersParams
           .getEvent()
           .setAdded(
-              List.of(new WorkspaceFolder("file://$projectPath/std/kotlin", "MyKotlinProject")));
+              List.of(new WorkspaceFolder("file://"+projectPath+"/std/kotlin", "MyKotlinProject")));
 
       Objects.requireNonNull(lspEditor.getRequestManager())
           .didChangeWorkspaceFolders(changeWorkspaceFoldersParams);

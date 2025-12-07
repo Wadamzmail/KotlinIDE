@@ -18,7 +18,7 @@ import java.util.concurrent.Future;
 public class KotlinLspService extends Service {
 
     private static final String TAG = "KotlinLspService";
-    private static final String SOCKET_NAME = "kotlin-lsp-socket"; // اسم القناة
+    private static final String SOCKET_NAME = "kotlin-lsp"; // اسم القناة
     
     private LocalServerSocket serverSocket;
     private Thread serverThread;

@@ -1,5 +1,5 @@
 
-class Main{
+class Sample{
   fun main(){
   }
 }
