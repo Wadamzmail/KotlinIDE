@@ -97,6 +97,7 @@ public class LspTestJavaActivity extends AppCompatActivity {
     binding = ActivityEditorBinding.inflate(getLayoutInflater());
     setContentView(binding.getRoot());
     setSupportActionBar(binding.toolbar);
+    getSupportActionBar().setDisplayHomeAsUpEnabled(true)
     editor = binding.editor;
     setTitle("LSP Test - Java");
 
