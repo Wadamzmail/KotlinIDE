@@ -5,7 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
-import dev.mutwakil.kotlinide.activity.EditorActivity;
+import dev.mutwakil.kotlinide.activity.LspTestJavaActivity;
 import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
@@ -14,7 +14,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         if(checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED){
-			startActivity(new Intent(this,EditorActivity.class));
+			startActivity(new Intent(this,LspTestJavaActivity.class));
 			finish();
 		}else{
 			requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},50);

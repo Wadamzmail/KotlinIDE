@@ -20,6 +20,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".activity.EditorActivity"/>
+           <activity android:name=".activity.LspTestJavaActivity"/>
         <service
             android:name=".KotlinLspService"
             android:enabled="true"
