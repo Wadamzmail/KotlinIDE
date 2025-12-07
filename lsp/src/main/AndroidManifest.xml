@@ -24,9 +24,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="dev.mutwakil.lsp">
 
-       <service
-            android:name=".KotlinLspService"
-            android:enabled="true"
-            android:exported="false"
-            android:process=":languageServerService" />
+       
 </manifest>

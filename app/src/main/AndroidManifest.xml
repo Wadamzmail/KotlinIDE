@@ -20,6 +20,11 @@
             </intent-filter>
         </activity>
         <activity android:name=".activity.EditorActivity"/>
+        <service
+            android:name=".KotlinLspService"
+            android:enabled="true"
+            android:exported="false"
+            android:process=":languageServerService" />
     </application>
     
 </manifest>
