@@ -111,7 +111,7 @@ public class KotlinLanguage extends EmptyTextMateLanguage implements Language {
     final String prefix =
         CompletionHelper.computePrefix(content, position, this::isAutoCompleteChar);
 
-    String uri = EditorActivity.currentFileUri;
+    /*String uri = EditorActivity.currentFileUri;
 
     CompletionParams params =
         new CompletionParams(
@@ -163,7 +163,7 @@ public class KotlinLanguage extends EmptyTextMateLanguage implements Language {
             // نشر العنصر لإظهاره في قائمة الإكمال التلقائي
             publisher.addItem(soraItem);
           }
-        });
+        });*/
   }
 
   public boolean isAutoCompleteChar(char p1) {

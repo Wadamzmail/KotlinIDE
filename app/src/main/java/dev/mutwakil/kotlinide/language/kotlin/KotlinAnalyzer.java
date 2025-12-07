@@ -1,5 +1,5 @@
 package dev.mutwakil.kotlinide.language.kotlin;
-import dev.mutwakil.code.analyzer.BaseTextmateAnalyzer;
+import dev.mutwakil.kotlinide.analyzer.BaseTextmateAnalyzer;
 import dev.mutwakil.kotlinide.language.textmate.EmptyTextMateLanguage;
 import io.github.rosemoe.sora.lang.Language;
 import io.github.rosemoe.sora.langs.textmate.registry.GrammarRegistry;
