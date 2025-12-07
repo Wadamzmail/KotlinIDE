@@ -21,7 +21,7 @@
  *     Please contact Rosemoe by email 2073412493@qq.com if you need
  *     additional information or have any questions
  */
-package dev.mutwakil.code.analyzer;
+package dev.mutwakil.kotlinide.analyzer;
 
 import android.annotation.SuppressLint;
 import android.graphics.Color;

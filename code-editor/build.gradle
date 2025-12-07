@@ -1,5 +1,5 @@
 plugins {
-    id 'com.android.library'
+    alias(libs.plugins.android.library)
 }
 
 android {
@@ -30,6 +30,6 @@ dependencies {
    api libs.soraEditor.treesitter
    api libs.soraEditor.textmate
    api libs.soraEditor.lsp
-   implementation(libs.org.eclipse.lsp4j.lsp4j)
-   implementation(libs.org.eclipse.lsp4j.jsonrpc)
+   api (libs.org.eclipse.lsp4j.lsp4j)
+   api (libs.org.eclipse.lsp4j.jsonrpc)
 }

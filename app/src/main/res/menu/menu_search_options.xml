@@ -1,6 +1,7 @@
-<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ~    CodeEditor - the awesome code editor for Android
-  ~    Copyright (C) 2020-2021  Rosemoe
+<?xml version="1.0" encoding="utf-8"?><!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ~    sora-editor - the awesome code editor for Android
+  ~    https://github.com/Rosemoe/sora-editor
+  ~    Copyright (C) 2020-2024  Rosemoe
   ~
   ~     This library is free software; you can redistribute it and/or
   ~     modify it under the terms of the GNU Lesser General Public
@@ -21,12 +22,21 @@
   ~     additional information or have any questions
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="dev.mutwakil.lsp">
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-       <service
-            android:name=".KotlinLspService"
-            android:enabled="true"
-            android:exported="false"
-            android:process=":languageServerService" />
-</manifest>
+    <item
+        android:id="@+id/search_option_regex"
+        android:checkable="true"
+        android:title="@string/search_option_regex" />
+
+    <item
+        android:id="@+id/search_option_whole_word"
+        android:checkable="true"
+        android:title="@string/search_option_whole_word" />
+
+    <item
+        android:id="@+id/search_option_match_case"
+        android:checkable="true"
+        android:title="@string/search_option_match_case" />
+
+</menu>
