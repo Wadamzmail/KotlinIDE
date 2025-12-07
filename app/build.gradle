@@ -4,16 +4,16 @@ plugins {
 }
 
 android {
-    namespace = "dev.mutwakil.kotlinide"
-    compileSdk = 36
-    buildToolsVersion = "36.0.0"
+    namespace = rootProject.ext.applicationId
+    compileSdk = rootProject.ext.compileSdkVersion
+    buildToolsVersion = rootProject.ext.buildToolsVersion
 
     defaultConfig {
-        applicationId = "dev.mutwakil.kotlinide"
-        minSdk = 26
-        targetSdk = 36
-        versionCode = 1
-        versionName = '0.1-Alpha'
+        applicationId = rootProject.ext.applicationId
+        minSdk = rootProject.ext.minSdkVersion
+        targetSdk = rootProject.ext.targetSdkVersion
+        versionCode = rootProject.ext.versionCode
+        versionName = rootProject.ext.versionName
 
         testInstrumentationRunner = 'androidx.test.runner.AndroidJUnitRunner'
       
@@ -86,20 +86,14 @@ dependencies {
 	
 	
     implementation project(':lsp')
+    implementation project(':code-editor')
 
     implementation project(':kotlinc')
 
     implementation  libs.androidx.core  
     implementation  libs.androidx.appcompat  
     implementation  libs.material  
-    implementation  libs.androidx.constraintlayout  
-    implementation libs.soraEditor
-    implementation libs.soraEditor.treesitter
-    implementation libs.soraEditor.textmate
-    implementation libs.soraEditor.lsp
-	
-	implementation(libs.org.eclipse.lsp4j.lsp4j)
-    implementation(libs.org.eclipse.lsp4j.jsonrpc) 
+    implementation  libs.androidx.constraintlayout
     
 }
 

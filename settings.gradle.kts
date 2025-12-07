@@ -27,5 +27,6 @@ rootProject.name = "KotlinIDE"
 include(
   ":app",
   ":kotlinc",
+  ":code-editor",
   ":lsp"
 )

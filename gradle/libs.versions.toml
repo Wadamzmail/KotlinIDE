@@ -59,7 +59,7 @@ org-jetbrains-kotlin-sam-with-receiver-compiler-plugin = { module = "org.jetbrai
 org-jetbrains-kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 org-jetbrains-kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
 org-jetbrains-kotlin-kotlin-scripting-jvm-host = { module = "org.jetbrains.kotlin:kotlin-scripting-jvm-host", version.ref = "kotlin" }
-com-google-guava-guava = { module = "com.google.guava:guava", version = "guavaVersion" }
+com-google-guava-guava = { module = "com.google.guava:guava", version.ref = "guavaVersion" }
 
 # Google
 material = { module = "com.google.android.material:material", version.ref = "material" }
