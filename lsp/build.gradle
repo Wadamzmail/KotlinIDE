@@ -30,20 +30,28 @@ dependencies {
 
    implementation project(':code-editor')
       // Kotlin compiler for Kotlin LSP
-    implementation(libs.kotlin.compiler.embeddable)
-    implementation(libs.kotlin.scripting.compiler.embeddable)
-    implementation(libs.asm)
-  
-    // LSP4J dependencies for kotlin-language-server integration
-    implementation(libs.org.eclipse.lsp4j.lsp4j)
-    implementation(libs.org.eclipse.lsp4j.jsonrpc) 
-    
-    implementation(libs.com.github.fwcd.ktfmt)
-    implementation(libs.google.java.format)
-    implementation(libs.google.guava)
-    api fileTree(dir: 'libs', include: ['*.jar'])
-    
-    implementation(libs.com.beust.jcommander)
-    implementation(libs.com.jetbrains.intellij.java.decompiler)
-    
+        implementation(libs.org.jetbrains.kotlin.stdlib)
+        implementation(libs.hamcrest.all)
+        implementation(libs.junit.junit)
+        implementation(libs.org.eclipse.lsp4j.lsp4j)
+        implementation(libs.org.eclipse.lsp4j.jsonrpc)
+        implementation(libs.org.jetbrains.kotlin.compiler)
+        implementation(libs.org.jetbrains.kotlin.ktscompiler)
+        implementation(libs.org.jetbrains.kotlin.kts.jvm.host.unshaded)
+        implementation(libs.org.jetbrains.kotlin.sam.with.receiver.compiler.plugin)
+        implementation(libs.org.jetbrains.kotlin.reflect)
+        implementation(libs.org.jetbrains.kotlin.jvm)
+        implementation(libs.com.jetbrains.intellij.java.decompiler)
+        implementation(libs.org.jetbrains.exposed.core)
+        implementation(libs.org.jetbrains.exposed.dao)
+        implementation(libs.org.jetbrains.exposed.jdbc)
+        implementation(libs.com.h2database.h2)
+        implementation(libs.com.google.guava.guava)
+        implementation(libs.com.github.fwcd.ktfmt)
+        implementation(libs.com.beust.jcommander)
+        implementation(libs.org.openjdk.jmh.core)
+        implementation(libs.org.jetbrains.kotlin.kotlin.scripting.jvm.host)
+        implementation(libs.org.openjdk.jmh.generator.annprocess)
+        implementation(libs.org.xerial.sqlite.jdbc)
+        api fileTree(dir: 'libs', include: ['*.jar'])
 }
