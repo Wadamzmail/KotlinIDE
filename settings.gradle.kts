@@ -7,6 +7,7 @@ pluginManagement {
         maven("https://central.sonatype.com/repository/maven-snapshots")
         maven(url = "https://repo.gradle.org/gradle/libs-releases")
         maven(url = "https://www.jetbrains.com/intellij-repository/releases")
+        maven("https://cache-redirector.jetbrains.com/kotlin.bintray.com/kotlin-plugin")
     }
 }
 
@@ -19,6 +20,7 @@ dependencyResolutionManagement {
         maven("https://central.sonatype.com/repository/maven-snapshots")
         maven(url = "https://repo.gradle.org/gradle/libs-releases")
         maven(url = "https://www.jetbrains.com/intellij-repository/releases")
+        maven("https://cache-redirector.jetbrains.com/kotlin.bintray.com/kotlin-plugin")
     }
 }
 
