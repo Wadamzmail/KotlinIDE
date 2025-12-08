@@ -172,7 +172,7 @@ public class LspTestJavaActivity extends AppCompatActivity {
 
     var luaServerDefinition =
         new CustomLanguageServerDefinition(
-            "kotlin", workingDir -> new LocalSocketStreamConnectionProvider("kotlin-lsp")) {
+            "kt", workingDir -> new LocalSocketStreamConnectionProvider("kotlin-lsp")) {
 
           private final EventListener eventListener = new EventListener(LspTestJavaActivity.this);
 
