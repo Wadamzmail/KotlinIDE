@@ -8,6 +8,16 @@ import org.kotlinlsp.common.read
 import org.kotlinlsp.index.Command
 import org.kotlinlsp.index.IndexNotifier
 import org.kotlinlsp.index.db.Database
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
+import org.eclipse.lsp4j.WorkDoneProgressKind
+import org.kotlinlsp.buildsystem.GradleBuildSystem.Companion.PROGRESS_TOKEN
+import org.kotlinlsp.common.profile
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 interface WorkerThreadNotifier: IndexNotifier {
     fun onSourceFileScanningFinished()
@@ -19,42 +29,111 @@ class WorkerThread(
     private val notifier: WorkerThreadNotifier
 ): Runnable {
     private val workQueue = WorkQueue<Command>()
+    
+    // Thread pool for parallel .class file indexing (use 6-8 threads for good parallelism)
+    private val indexThreadPool = Executors.newFixedThreadPool(
+        Runtime.getRuntime().availableProcessors().coerceIn(4, 8)
+    )
+    private val sourceThreadPool = Executors.newFixedThreadPool(
+        Runtime.getRuntime().availableProcessors().coerceIn(4, 8)
+    )
+    private val isShuttingDown = AtomicBoolean(false)
 
     override fun run() {
-        var scanCount = 0
-        var indexCount = 0
+        val scanCount = AtomicInteger(0)
+        val indexCount = AtomicInteger(0)
+        val sourceCount = AtomicInteger(0)
 
         while(true) {
-            when(val command = workQueue.take()) {
-                is Command.Stop -> break
+            when(val command = workQueue.take() ) {
+                is Command.Stop -> {
+                    isShuttingDown.set(true)
+                    indexThreadPool.shutdown()
+                    sourceThreadPool.shutdown()
+                    try {
+                        indexThreadPool.awaitTermination(60, TimeUnit.SECONDS)
+                        sourceThreadPool.awaitTermination(60, TimeUnit.SECONDS)
+                    } catch (e: InterruptedException) {
+                        indexThreadPool.shutdownNow()
+                        sourceThreadPool.shutdownNow()
+                    }
+                    break
+                }
                 is Command.ScanSourceFile -> {
-                    if(!command.virtualFile.url.startsWith("file://")) return
+                    if(!command.virtualFile.url.startsWith("file://")) continue
+
+                    // Only process Kotlin files
+                    if (!command.virtualFile.extension.equals("kt", ignoreCase = true)) continue
 
                     val ktFile = project.read { PsiManager.getInstance(project).findFile(command.virtualFile) } as KtFile
                     scanKtFile(project, ktFile, db)
-                    scanCount ++
+                    scanCount.incrementAndGet()
+                }
+                is Command.IndexSource -> {
+                    sourceThreadPool.submit {
+                        try {
+                            if( command.virtualFile.extension.equals("kt", true) || command.virtualFile.extension.equals("java", true)) {
+                                sourceCount.incrementAndGet()
+                                indexSourceFile(project, command.virtualFile, db)
+                            }
+                        } catch (e: Exception) {
+
+                        }
+                    }
                 }
                 is Command.IndexFile -> {
-                    if(command.virtualFile.url.startsWith("file://")) {
-                        val ktFile = project.read { PsiManager.getInstance(project).findFile(command.virtualFile) } as KtFile
-                        indexKtFile(project, ktFile, db)
-                    } else {
-                        indexClassFile(project, command.virtualFile, db)
+                    // Submit to thread pool for parallel processing
+                    indexThreadPool.submit {
+                        try {
+                            if(command.virtualFile.url.startsWith("file://")) {
+                                // Only process Kotlin files
+                                if (!command.virtualFile.extension.equals("kt", ignoreCase = true)) {
+                                    indexCount.incrementAndGet()
+                                    return@submit
+                                }
+
+                                val ktFile = project.read { PsiManager.getInstance(project).findFile(command.virtualFile) } as? KtFile
+                                if (ktFile != null) {
+                                    indexKtFile(project, ktFile, db)
+                                }
+                                indexCount.incrementAndGet()
+                            } else {
+                                // .class file - parallel processing
+                                indexClassFile(project, command.virtualFile, db)
+                                indexCount.incrementAndGet()
+                            }
+                        } catch (e: Exception) {
+                            // Silently handle errors to prevent thread pool from dying
+                        }
                     }
-                    indexCount ++
                 }
                 is Command.IndexModifiedFile -> {
                     info("Indexing modified file: ${command.ktFile.virtualFile.name}")
                     indexKtFile(project, command.ktFile, db)
                 }
                 is Command.IndexingFinished -> {
-                    // TODO Should remove in this point files which do not exist anymore
-                    info("Background indexing finished!, $indexCount files!")
+                    // Wait for all indexing tasks to complete before reporting
+                    indexThreadPool.shutdown()
+                    try {
+                        indexThreadPool.awaitTermination(60, TimeUnit.SECONDS)
+                    } catch (e: InterruptedException) {
+                        indexThreadPool.shutdownNow()
+                    }
+                    
+                    info("Background indexing finished!, ${indexCount.get()} files!")
                     notifier.onBackgroundIndexFinished()
                 }
-                Command.SourceScanningFinished -> {
-                    // TODO Should remove in this point files which do not exist anymore
-                    info("Source file scanning finished!, $scanCount files!")
+                is Command.SourceIndexingFinished -> {
+                    sourceThreadPool.shutdown()
+                    try {
+                        sourceThreadPool.awaitTermination(60, TimeUnit.SECONDS)
+                    } catch (e: Exception) {
+                        sourceThreadPool.shutdownNow()
+                    }
+                    info("Source file indexing finished!, ${sourceCount.get()} files!")
+                }
+                is Command.SourceScanningFinished -> {
+                    info("Source file scanning finished!, ${scanCount.get()} files!")
                     notifier.onSourceFileScanningFinished()
                 }
             }

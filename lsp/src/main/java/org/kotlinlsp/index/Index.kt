@@ -5,7 +5,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import org.jetbrains.kotlin.psi.KtFile
+import org.kotlinlsp.analysis.modules.SourceModule
 import org.kotlinlsp.analysis.modules.Module
+import org.kotlinlsp.analysis.modules.asFlatSequence
 import org.kotlinlsp.common.read
 import org.kotlinlsp.index.db.Database
 import org.kotlinlsp.index.worker.WorkerThread
@@ -18,7 +20,7 @@ interface IndexNotifier {
 }
 
 class Index(
-    modules: List<Module>,
+    private val modules: List<Module>,
     private val project: Project,
     rootFolder: String,
     notifier: IndexNotifier
@@ -42,6 +44,13 @@ class Index(
     private val ktFileCache = Caffeine.newBuilder()
         .maximumSize(100)
         .build<String, KtFile>()
+
+    private val sourceFileCache: List<KtFile> = modules.asFlatSequence()
+            .filter { it.isSourceModule }
+            .map { it.computeFiles(extended = true) }
+            .flatten()
+            .mapNotNull { getKtFile(it) }
+            .toList()
 
     fun syncIndexInBackground() {
         // We have 2 threads here
@@ -98,5 +107,21 @@ class Index(
         val ktFile = project.read { PsiManager.getInstance(project).findFile(virtualFile) as? KtFile } ?: return null
         ktFileCache.put(virtualFile.url, ktFile)
         return ktFile
+    }
+
+    fun getAllSourceKtFiles(): List<KtFile> {
+        return sourceFileCache
+    }
+
+    fun addVirtualFileToModuleScope(virtualFile: VirtualFile) {
+        modules.asFlatSequence()
+            .filterIsInstance<SourceModule>()
+            .firstOrNull { module ->
+                // Rough check: if any of the module's content roots is a prefix of the file path
+                // we treat it as belonging to that module
+                val path = virtualFile.url
+                module.contentRoots.any { path.startsWith("file://${it.toFile().absolutePath}") }
+            }
+            ?.addFileToContentScope(virtualFile)
     }
 }

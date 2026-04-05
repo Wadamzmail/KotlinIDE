@@ -3,6 +3,7 @@ package org.kotlinlsp.analysis
 import com.intellij.core.CorePackageIndex
 import com.intellij.mock.MockApplication
 import com.intellij.mock.MockProject
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.roots.PackageIndex
 import com.intellij.openapi.util.Disposer
@@ -17,15 +18,19 @@ import org.eclipse.lsp4j.*
 import org.jetbrains.kotlin.analysis.api.KaImplementationDetail
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.components.KaDiagnosticCheckerFilter
+import org.jetbrains.kotlin.analysis.api.platform.analysisMessageBus
 import org.jetbrains.kotlin.analysis.api.platform.declarations.KotlinAnnotationsResolverFactory
 import org.jetbrains.kotlin.analysis.api.platform.declarations.KotlinDeclarationProviderFactory
 import org.jetbrains.kotlin.analysis.api.platform.declarations.KotlinDirectInheritorsProvider
 import org.jetbrains.kotlin.analysis.api.platform.modification.KaElementModificationType
 import org.jetbrains.kotlin.analysis.api.platform.modification.KaSourceModificationService
+import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationEvent
+import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModuleOutOfBlockModificationEvent
 import org.jetbrains.kotlin.analysis.api.platform.packages.KotlinPackagePartProviderFactory
 import org.jetbrains.kotlin.analysis.api.platform.packages.KotlinPackageProviderFactory
 import org.jetbrains.kotlin.analysis.api.platform.projectStructure.KotlinModuleDependentsProvider
 import org.jetbrains.kotlin.analysis.api.platform.projectStructure.KotlinProjectStructureProvider
+import org.jetbrains.kotlin.analysis.api.projectStructure.KaModule
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.jvm.compiler.*
 import org.jetbrains.kotlin.cli.jvm.index.JavaRoot
@@ -38,8 +43,17 @@ import org.jetbrains.kotlin.cli.jvm.modules.JavaModuleGraph
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.KtFile
 import org.kotlinlsp.actions.autocomplete.autocompleteAction
+import org.kotlinlsp.actions.codeaction.CodeActionContext
+import org.kotlinlsp.actions.codeaction.CodeActionRegistry
+import org.kotlinlsp.actions.documentSymbolsAction
+import org.kotlinlsp.actions.findReferencesAction
 import org.kotlinlsp.actions.goToDefinitionAction
-import org.kotlinlsp.actions.hoverAction
+import org.kotlinlsp.actions.goToImplementationAction
+import org.kotlinlsp.actions.hover.hoverAction
+import org.kotlinlsp.actions.renameAction
+import org.kotlinlsp.actions.semanticHighlightingAction
+import org.kotlinlsp.actions.semanticHighlightingRangeAction
+import org.kotlinlsp.analysis.modules.NotUnderContentRootModule
 import org.kotlinlsp.analysis.modules.asFlatSequence
 import org.kotlinlsp.analysis.registration.Registrar
 import org.kotlinlsp.analysis.registration.lspPlatform
@@ -49,6 +63,8 @@ import org.kotlinlsp.buildsystem.BuildSystemResolver
 import org.kotlinlsp.common.*
 import org.kotlinlsp.index.Index
 import org.kotlinlsp.index.IndexNotifier
+import com.intellij.openapi.fileTypes.BinaryFileTypeDecompilers
+import com.intellij.ide.highlighter.JavaClassFileType
 
 interface DiagnosticsNotifier {
     fun onDiagnostics(params: PublishDiagnosticsParams)
@@ -68,6 +84,8 @@ class AnalysisSession(private val notifier: AnalysisSessionNotifier, rootPath: S
     private val psiDocumentManager: PsiDocumentManager
     private val buildSystemResolver: BuildSystemResolver
     private val index: Index
+    private val codeActionRegistry: CodeActionRegistry
+    private var projectStructureProvider: ProjectStructureProvider
 
     init {
         System.setProperty("java.awt.headless", "true")
@@ -96,6 +114,9 @@ class AnalysisSession(private val notifier: AnalysisSessionNotifier, rootPath: S
 
         // Create the index
         index = Index(modules, project, rootPath, notifier)
+
+        // Initialize code action registry
+        codeActionRegistry = CodeActionRegistry.createDefault()
 
         // Prepare the dependencies index for the Analysis API
         project.setupHighestLanguageLevel()
@@ -160,7 +181,8 @@ class AnalysisSession(private val notifier: AnalysisSessionNotifier, rootPath: S
         (project.getService(KotlinModuleDependentsProvider::class.java) as ModuleDependentsProvider).setup(
             modules
         )
-        (project.getService(KotlinProjectStructureProvider::class.java) as ProjectStructureProvider).setup(
+        projectStructureProvider = project.getService(KotlinProjectStructureProvider::class.java) as ProjectStructureProvider
+        projectStructureProvider.setup(
             modules,
             project
         )
@@ -178,6 +200,9 @@ class AnalysisSession(private val notifier: AnalysisSessionNotifier, rootPath: S
         commandProcessor = app.getService(CommandProcessor::class.java)
         psiDocumentManager = PsiDocumentManager.getInstance(project)
 
+        // This allows both Java and Kotlin .class files to be handled properly
+        BinaryFileTypeDecompilers.getInstance().addExplicitExtension(JavaClassFileType.INSTANCE, CustomClassDecompiler())
+
         // Sync the index in the background
         index.syncIndexInBackground()
     }
@@ -185,7 +210,21 @@ class AnalysisSession(private val notifier: AnalysisSessionNotifier, rootPath: S
     fun onOpenFile(path: String) {
         val ktFile = loadKtFile(path) ?: return
         index.openKtFile(path, ktFile)
+        var kaModule: KaModule? = projectStructureProvider.getModule(ktFile, null)
+        if(kaModule !is NotUnderContentRootModule){
+            updateDiagnostics(ktFile)
+            return
+        } else {
+            // Register the file into the owning module's content scope so Analysis API can resolve it
+            index.addVirtualFileToModuleScope(ktFile.virtualFile)
+            kaModule = projectStructureProvider.getModule(ktFile, null)
+        }
 
+        // Must be published in a write action
+        app.runWriteAction {
+            val bus = project.analysisMessageBus.syncPublisher(KotlinModificationEvent.TOPIC)
+            bus.onModification(KotlinModuleOutOfBlockModificationEvent(kaModule))
+        }
         updateDiagnostics(ktFile)
     }
 
@@ -206,7 +245,8 @@ class AnalysisSession(private val notifier: AnalysisSessionNotifier, rootPath: S
                     it.textRange.toLspRange(ktFile),
                     it.errorDescription,
                     DiagnosticSeverity.Error,
-                    "Kotlin LSP"
+                    "Kotlin LSP",
+                    "SYNTAX"
                 )
             }
         }
@@ -219,14 +259,15 @@ class AnalysisSession(private val notifier: AnalysisSessionNotifier, rootPath: S
                         it.textRanges.first().toLspRange(ktFile),
                         it.defaultMessage,
                         it.severity.toLspSeverity(),
-                        "Kotlin LSP"
+                        "Kotlin LSP",
+                        it.factoryName
                     )
                 }
 
                 return@analyze lspDiagnostics
             }
         }
-        notifier.onDiagnostics(PublishDiagnosticsParams("file://${ktFile.virtualFilePath}", syntaxDiagnostics + analysisDiagnostics))
+        notifier.onDiagnostics(PublishDiagnosticsParams(ktFile.virtualFile.url.normalizeUri(), syntaxDiagnostics + analysisDiagnostics))
         logProfileInfo()
     }
 
@@ -241,7 +282,12 @@ class AnalysisSession(private val notifier: AnalysisSessionNotifier, rootPath: S
                     val startOffset = it.range.start.toOffset(ktFile)
                     val endOffset = it.range.end.toOffset(ktFile)
 
-                    doc.replaceString(startOffset, endOffset, it.text)
+                    // VS Code usually sends edits with CRLF ("\r\n"). The PSI Document counts
+                    // offsets based on LF ("\n") line delimiters, and StringUtil's line/column
+                    // helpers do the same.  Converting to LF before applying keeps offsets
+                    // consistent and prevents losing or mis-placing newlines.
+                    val normalizedText = it.text.replace("\r\n", "\n")
+                    doc.replaceString(startOffset, endOffset, normalizedText)
                     psiDocumentManager.commitDocument(doc)
                     ktFile.onContentReload()
                 }, "onChangeFile", null)
@@ -268,20 +314,73 @@ class AnalysisSession(private val notifier: AnalysisSessionNotifier, rootPath: S
         index.close()
     }
 
-    fun hover(path: String, position: Position): Pair<String, Range>? {
-        val ktFile = index.getOpenedKtFile(path) ?: return null
-        return project.read { hoverAction(ktFile, position) }
+    private fun getKtFile(path: String): KtFile? {
+        val openedFile = index.getOpenedKtFile(path)
+        if (openedFile != null) {
+            return openedFile
+        }
+
+        val virtualFile = project.read { 
+            VirtualFileManager.getInstance().findFileByUrl(path) 
+        } ?: return null
+        
+        val result = index.getKtFile(virtualFile)
+        return result
     }
 
-    fun goToDefinition(path: String, position: Position): Location? {
-        val ktFile = index.getOpenedKtFile(path) ?: return null
-        return project.read { goToDefinitionAction(ktFile, position) }
+    fun hover(path: String, position: Position): Pair<String, Range>? {
+        val ktFile = getKtFile(path) ?: return null
+        return project.read { hoverAction(ktFile, position, index) }
+    }
+
+    fun goToDefinition(path: String, position: Position): List<Location?>? {
+        val ktFile = getKtFile(path) ?: return null
+        return project.read { goToDefinitionAction(ktFile, position, index) }
+    }
+
+    fun goToImplementation(path: String, position: Position): List<Location?>? {
+        val ktFile = getKtFile(path) ?: return null
+        return project.read { goToImplementationAction(ktFile, position) }
     }
 
     fun autocomplete(path: String, position: Position): List<CompletionItem> {
-        val ktFile = index.getOpenedKtFile(path) ?: return emptyList()
+        val ktFile = getKtFile(path) ?: return emptyList()
         val offset = position.toOffset(ktFile)
 
         return project.read { autocompleteAction(ktFile, offset, index) }.toList()
+    }
+
+    fun getCodeActions(path: String, range: Range, diagnostics: List<Diagnostic>): List<CodeAction> {
+        val ktFile = getKtFile(path) ?: return emptyList()
+
+        return project.read {
+            val context = CodeActionContext(ktFile, range, diagnostics, path, index)
+            codeActionRegistry.getCodeActions(context)
+        }
+    }
+
+    fun findReferences(path: String, position: Position): List<Location>? {
+        val ktFile = getKtFile(path) ?: return null
+        return project.read { findReferencesAction(ktFile, position, index) }
+    }
+
+    fun documentSymbols(path: String): List<DocumentSymbol> {
+        val ktFile = getKtFile(path) ?: return emptyList()
+        return project.read { documentSymbolsAction(ktFile) }
+    }
+
+    fun rename(path: String, position: Position, newName: String): WorkspaceEdit? {
+        val ktFile = getKtFile(path) ?: return null
+        return project.read { renameAction(ktFile, position, newName, index) }
+    }
+
+    fun semanticTokens(path: String): SemanticTokens? {
+        val ktFile = getKtFile(path) ?: return null
+        return project.read { semanticHighlightingAction(ktFile) }
+    }
+
+    fun semanticTokensRange(path: String, range: Range): SemanticTokens? {
+        val ktFile = getKtFile(path) ?: return null
+        return project.read { semanticHighlightingRangeAction(ktFile, range) }
     }
 }
