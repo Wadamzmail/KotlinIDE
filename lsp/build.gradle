@@ -37,15 +37,15 @@ dependencies {
     implementation project(':kotlinc')
 
     def intellijVersion = "241.19416.19"
-    implementation("com.jetbrains.intellij.platform:core:$intellijVersion")
+   /* implementation("com.jetbrains.intellij.platform:core:$intellijVersion")
     implementation("com.jetbrains.intellij.platform:core-impl:$intellijVersion")
-    implementation("com.jetbrains.intellij.platform:util:$intellijVersion")
+    implementation("com.jetbrains.intellij.platform:util:$intellijVersion")*/
     //implementation("com.jetbrains.intellij.java:java-decompiler-engine:243.22562.218")
     implementation("org.vineflower:vineflower:1.11.1")
     
    // val analysisApiKotlinVersion = "2.2.20-dev-2432" // 13-May-2025 (version that KSP uses)
     implementation("com.github.ben-manes.caffeine:caffeine:2.9.3")  // Needed by kotlin analysis api
-    [
+ /*   [
     "org.jetbrains.kotlin:analysis-api-k2-for-ide",
     "org.jetbrains.kotlin:analysis-api-for-ide",
     "org.jetbrains.kotlin:low-level-api-fir-for-ide",
@@ -58,7 +58,7 @@ dependencies {
       implementation("${dependency}:2.2.20-dev-2432") {
           transitive = false
       }
-    }
+    }*/
     
     implementation("org.jetbrains.kotlin:kotlin-compiler:2.2.20-dev-2432")
     implementation project(':java-stubs') 
