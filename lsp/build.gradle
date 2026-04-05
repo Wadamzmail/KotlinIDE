@@ -8,7 +8,7 @@ plugins {
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
-	namespace = "dev.mutwakil.lsp"
+	namespace = "org.kotlinlsp"
 	
     defaultConfig {
         minSdk rootProject.ext.minSdkVersion
