@@ -10,8 +10,8 @@ java {
 }
 dependencies {
    implementation 'androidx.annotation:annotation:1.7.0'
-   val analysisApiKotlinVersion = "2.2.20-dev-2432" // 13-May-2025 (version that KSP uses)
-    api("org.jetbrains.kotlin:kotlin-compiler:$analysisApiKotlinVersion")
+//   val analysisApiKotlinVersion = "2.2.20-dev-2432" // 13-May-2025 (version that KSP uses)
+    api("org.jetbrains.kotlin:kotlin-compiler:2.2.20-dev-2432")
     api project(':java-stubs') 
     implementation("org.jetbrains.intellij.deps:trove4j:1.0.20200330")
 }
