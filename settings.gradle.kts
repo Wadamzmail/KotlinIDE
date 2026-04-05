@@ -13,7 +13,7 @@ pluginManagement {
         maven(url = "https://www.jetbrains.com/intellij-repository/releases")
         maven(url = "https://cache-redirector.jetbrains.com/intellij-third-party-dependencies")
         maven(url = "https://repo.gradle.org/gradle/libs-releases")
-        maven { url = "https://packages.jetbrains.team/maven/p/ij/intellij-dependencies/" }
+        maven("https://packages.jetbrains.team/maven/p/ij/intellij-dependencies/") 
     }
 }
 
@@ -32,7 +32,7 @@ dependencyResolutionManagement {
         maven(url = "https://www.jetbrains.com/intellij-repository/releases")
         maven(url = "https://cache-redirector.jetbrains.com/intellij-third-party-dependencies")
         maven(url = "https://repo.gradle.org/gradle/libs-releases")
-        maven { url = "https://packages.jetbrains.team/maven/p/ij/intellij-dependencies/" }
+        maven("https://packages.jetbrains.team/maven/p/ij/intellij-dependencies/") 
     }
 }
 
