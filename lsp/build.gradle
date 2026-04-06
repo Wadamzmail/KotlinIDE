@@ -43,24 +43,24 @@ dependencies {
     //implementation("com.jetbrains.intellij.java:java-decompiler-engine:243.22562.218")
     implementation("org.vineflower:vineflower:1.11.1")
     
-   // val analysisApiKotlinVersion = "2.2.20-dev-2432" // 13-May-2025 (version that KSP uses)
+    def analysisApiKotlinVersion = "2.2.20-dev-2432" // 13-May-2025 (version that KSP uses)
     implementation("com.github.ben-manes.caffeine:caffeine:2.9.3")  // Needed by kotlin analysis api
- /*   [
+    [
     "org.jetbrains.kotlin:analysis-api-k2-for-ide",
     "org.jetbrains.kotlin:analysis-api-for-ide",
     "org.jetbrains.kotlin:low-level-api-fir-for-ide",
     "org.jetbrains.kotlin:analysis-api-platform-interface-for-ide",
     "org.jetbrains.kotlin:symbol-light-classes-for-ide",
-    "org.jetbrains.kotlin:analysis-api-impl-base-for-ide",
-    "org.jetbrains.kotlin:kotlin-compiler-common-for-ide",
-    "org.jetbrains.kotlin:kotlin-compiler-fir-for-ide"
+    "org.jetbrains.kotlin:analysis-api-impl-base-for-ide"
+   // "org.jetbrains.kotlin:kotlin-compiler-common-for-ide",
+   // "org.jetbrains.kotlin:kotlin-compiler-fir-for-ide"
     ].each { String dependency ->
-      implementation("${dependency}:2.2.20-dev-2432") {
+      implementation("${dependency}:${analysisApiKotlinVersion}") {
           transitive = false
       }
-    }*/
+    }
     
-    implementation("org.jetbrains.kotlin:kotlin-compiler:2.2.20-dev-2432")
+    implementation("org.jetbrains.kotlin:kotlin-compiler:$analysisApiKotlinVersion")
     implementation project(':java-stubs') 
 
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.24.0")
