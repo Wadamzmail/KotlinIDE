@@ -78,7 +78,7 @@ android {
 
 configurations.all {
     exclude group: "com.google.guava", module: "listenablefuture"
-    exclude group: 'org.jetbrains", module:"annotations" 
+    exclude group: "org.jetbrains", module:"annotations" 
 }
 
 dependencies {
