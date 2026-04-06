@@ -37,7 +37,7 @@ dependencies {
     implementation project(':kotlinc')
 
     def intellijVersion = "241.19416.19"
-    implementation("com.jetbrains.intellij.platform:core:$intellijVersion")
+    //implementation("com.jetbrains.intellij.platform:core:$intellijVersion")
     //implementation("com.jetbrains.intellij.platform:core-impl:$intellijVersion")
     //implementation("com.jetbrains.intellij.platform:util:$intellijVersion")
     //implementation("com.jetbrains.intellij.java:java-decompiler-engine:243.22562.218")
