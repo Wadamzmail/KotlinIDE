@@ -16,30 +16,24 @@ class KotlinLSPClient : LanguageClient {
     private lateinit var server: KotlinLanguageServer
     private val clientExecutor = Executors.newFixedThreadPool(4)
     
-    // واجهات لربط أحداث السيرفر بواجهة أندرويد
     var diagnosticsListener: ((PublishDiagnosticsParams) -> Unit)? = null
     var progressListener: ((ProgressParams) -> Unit)? = null
 
-    /**
-     * تشغيل السيرفر المدمج وربطه بالعميل مباشرة
-     */
     fun startAndConnect() {
-        // 1. إعداد الأنابيب (Pipes) للاتصال الداخلي
         val clientIn = PipedInputStream()
         val serverOut = PipedOutputStream(clientIn)
 
         val serverIn = PipedInputStream()
         val clientOut = PipedOutputStream(serverIn)
 
-        // 2. إنشاء السيرفر مع المنبه الخاص به
         val notifier = object : KotlinLanguageServerNotifier {
-            override fun onExit() { /* التعامل مع الإغلاق */ }
-            override fun onBackgroundIndexingFinished() { /* تحديث الـ UI */ }
+            override fun onExit() { }
+            override fun onBackgroundIndexingFinished() { }
         }
         
         server = KotlinLanguageServer(notifier)
 
-        // 3. إطلاق الـ Client Launcher (يستمع إلى clientIn ويرسل عبر clientOut)
+        // تعديل هنا: نحتاج لتعريف الـ Launcher بوضوح
         val launcher = LSPLauncher.createClientLauncher(
             this, 
             clientIn, 
@@ -47,41 +41,40 @@ class KotlinLSPClient : LanguageClient {
             clientExecutor
         ) { it }
 
-        // 4. ربط السيرفر بالـ Client
+        // الخطأ كان هنا: يجب تمرير الـ RemoteProxy (الذي هو LanguageClient) للسيرفر
+        // وليس السيرفر للعميل بشكل خاطئ
         server.connect(launcher.remoteProxy)
         
-        // 5. بدء الاستماع في خلفية التطبيق
         launcher.startListening()
-
-        // ملاحظة: في حالة الـ Embedded، السيرفر يحتاج أيضاً لمن يقرأ من serverIn
-        // LSP4J تتعامل مع هذا داخلياً عند بدء تشغيل الـ Server Launcher إذا لزم الأمر
     }
 
-    // --- استقبال البيانات من السيرفر (Callbacks) ---
-
     override fun publishDiagnostics(diagnostics: PublishDiagnosticsParams) {
-        // أخطاء الكود تصل هنا (مثلاً: خط أحمر تحت الكلمة)
         diagnosticsListener?.invoke(diagnostics)
     }
 
     override fun notifyProgress(params: ProgressParams) {
-        // تحديث شريط التحميل أثناء الفهرسة (Indexing)
         progressListener?.invoke(params)
     }
 
-    override fun logMessage(message: LogMessageParams) {
-        android.util.Log.i("LSP_LOG", "[${message.type}] ${message.message}")
+    // تصحيح: LSP4J تستخدم MessageParams بدلاً من LogMessageParams في الإصدارات الحديثة
+    override fun logMessage(params: MessageParams) {
+        android.util.Log.i("LSP_LOG", "[${params.type}] ${params.message}")
     }
 
-    override fun showMessage(message: ShowMessageParams) {}
-    override fun showMessageRequest(p: ShowMessageRequestParams) = null
-    override fun telemetryEvent(obj: Any) {}
+    override fun showMessage(params: MessageParams) {
+        android.util.Log.i("LSP_SHOW", "[${params.type}] ${params.message}")
+    }
 
-    // --- طلبات من الأندرويد إلى السيرفر ---
+    override fun showMessageRequest(params: ShowMessageRequestParams): CompletableFuture<MessageActionItem>? {
+        return null
+    }
+
+    override fun telemetryEvent(obj: Any) {}
 
     fun initServer(rootPath: String): CompletableFuture<InitializeResult> {
         val params = InitializeParams().apply {
-            workspaceFolders = listOf(WorkspaceFolder("file://$rootPath"))
+            // تصحيح: WorkspaceFolder يحتاج (uri, name) في بعض الإصدارات
+            workspaceFolders = listOf(WorkspaceFolder("file://$rootPath", "root"))
         }
         return server.initialize(params)
     }
