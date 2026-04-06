@@ -2,7 +2,8 @@ package org.kotlinlsp.analysis.modules
 
 import com.intellij.core.CoreApplicationEnvironment
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.LocalFileProvider
+//import com.intellij.openapi.vfs.LocalFileProvider
+//import com.intellij.openapi.vfs.newvfs.ArchiveFileSystem
 import com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
