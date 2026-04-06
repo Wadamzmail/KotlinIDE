@@ -51,29 +51,16 @@ dependencies {
     "org.jetbrains.kotlin:low-level-api-fir-for-ide",
     "org.jetbrains.kotlin:analysis-api-platform-interface-for-ide",
     "org.jetbrains.kotlin:symbol-light-classes-for-ide",
-    "org.jetbrains.kotlin:analysis-api-impl-base-for-ide",
-    "org.jetbrains.kotlin:kotlin-compiler-common-for-ide",
-    "org.jetbrains.kotlin:kotlin-compiler-fir-for-ide"
+    "org.jetbrains.kotlin:analysis-api-impl-base-for-ide"
+   // "org.jetbrains.kotlin:kotlin-compiler-common-for-ide",
+   // "org.jetbrains.kotlin:kotlin-compiler-fir-for-ide"
     ].each { String dependency ->
       implementation("${dependency}:${analysisApiKotlinVersion}") {
           transitive = false
       }
     }
     
-   // implementation("org.jetbrains.kotlin:kotlin-compiler:$analysisApiKotlinVersion")
-    implementation("org.jetbrains.kotlin:psi-api:$analysisApiKotlinVersion")
-    implementation("org.jetbrains.kotlin:psi-impl:$analysisApiKotlinVersion")
-    implementation("org.jetbrains.kotlin:psi-utils:$analysisApiKotlinVersion")
-    implementation("org.jetbrains.kotlin:psi-frontend-utils:$analysisApiKotlinVersion")
-    implementation("org.jetbrains.kotlin:parser:$analysisApiKotlinVersion")
-  //  implementation("org.jetbrains.kotlin:frontend.common-psi:$analysisApiKotlinVersion")
-  //  implementation("org.jetbrains.kotlin:frontend.common:$analysisApiKotlinVersion")
-    implementation("org.jetbrains.kotlin:util:$analysisApiKotlinVersion")
-    implementation("org.jetbrains.kotlin:config:$analysisApiKotlinVersion")
-  //  implementation("org.jetbrains.kotlin:config.jvm:$analysisApiKotlinVersion")
-  implementation("org.jetbrains.kotlin:kotlin-compiler-runner-unshaded:$analysisApiKotlinVersion")
-  implementation("org.jetbrains.kotlin:decompiler-to-psi:$analysisApiKotlinVersion") 
-  implementation("org.jetbrains.kotlin:cli-common:$analysisApiKotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:$analysisApiKotlinVersion")
     
     implementation project(':java-stubs') 
 
