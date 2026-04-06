@@ -61,6 +61,20 @@ dependencies {
     }
     
    // implementation("org.jetbrains.kotlin:kotlin-compiler:$analysisApiKotlinVersion")
+    implementation("org.jetbrains.kotlin:psi-api:$analysisApiKotlinVersion")
+    implementation("org.jetbrains.kotlin:psi-impl:$analysisApiKotlinVersion")
+    implementation("org.jetbrains.kotlin:psi-utils:$analysisApiKotlinVersion")
+    implementation("org.jetbrains.kotlin:psi-frontend-utils:$analysisApiKotlinVersion")
+    implementation("org.jetbrains.kotlin:parser:$analysisApiKotlinVersion")
+  //  implementation("org.jetbrains.kotlin:frontend.common-psi:$analysisApiKotlinVersion")
+  //  implementation("org.jetbrains.kotlin:frontend.common:$analysisApiKotlinVersion")
+    implementation("org.jetbrains.kotlin:util:$analysisApiKotlinVersion")
+    implementation("org.jetbrains.kotlin:config:$analysisApiKotlinVersion")
+  //  implementation("org.jetbrains.kotlin:config.jvm:$analysisApiKotlinVersion")
+  implementation("org.jetbrains.kotlin:kotlin-compiler-runner-unshaded:$analysisApiKotlinVersion")
+  implementation("org.jetbrains.kotlin:decompiler-to-psi:$analysisApiKotlinVersion") 
+  implementation("org.jetbrains.kotlin:cli-common:$analysisApiKotlinVersion")
+    
     implementation project(':java-stubs') 
 
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.24.0")
