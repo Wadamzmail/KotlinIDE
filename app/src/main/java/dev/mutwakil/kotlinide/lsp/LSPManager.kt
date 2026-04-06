@@ -1,7 +1,7 @@
 package dev.mutwakil.kotlinide.lsp
 
+import android.util.Log
 import org.eclipse.lsp4j.launch.LSPLauncher
-import org.eclipse.lsp4j.services.LanguageClient
 import org.kotlinlsp.lsp.KotlinLanguageServer
 import org.kotlinlsp.lsp.KotlinLanguageServerNotifier
 import java.io.PipedInputStream
@@ -10,64 +10,70 @@ import java.util.concurrent.Executors
 
 object LSPManager {
 
-    @JvmField
-    var lspClient: KotlinLSPClient? = null
-    
-    @JvmField
-    var lspServer: KotlinLanguageServer? = null
+    var client: KotlinLSPClient? = null
+        private set
 
-    private val executor = Executors.newFixedThreadPool(4)
+    private var launcherFuture: java.util.concurrent.Future<*>? = null
 
-    @JvmStatic
-    fun setupLSP() {
-        if (this.lspClient != null) return 
+    private val executor = Executors.newCachedThreadPool()
 
-        // 1. إنشاء العميل والسيرفر ككائنات عادية أولاً
-        val client = KotlinLSPClient()
-        
-        val serverNotifier = object : KotlinLanguageServerNotifier {
-            override fun onExit() { }
-            override fun onBackgroundIndexingFinished() { }
+    fun start(rootPath: String) {
+        if (client != null) return
+
+        // ========= client =========
+        val lspClient = KotlinLSPClient()
+
+        // ========= server =========
+        val notifier = object : KotlinLanguageServerNotifier {
+            override fun onExit() {
+                Log.d("LSP", "Server exited")
+            }
+
+            override fun onBackgroundIndexingFinished() {
+                Log.d("LSP", "Indexing finished")
+            }
         }
-        val server = KotlinLanguageServer(serverNotifier)
 
-        // 2. إعداد الأنابيب للربط التبادلي
-        // مخرج العميل يذهب لمدخل السيرفر
+        val server = KotlinLanguageServer(notifier)
+
+        // ========= pipes =========
         val clientOut = PipedOutputStream()
         val serverIn = PipedInputStream(clientOut)
 
-        // مخرج السيرفر يذهب لمدخل العميل
         val serverOut = PipedOutputStream()
         val clientIn = PipedInputStream(serverOut)
 
-        // 3. استخدام createServerLauncher كما في الـ Docs
-        // البارامترات: (السيرفر، مدخل السيرفر، مخرج السيرفر، الـ executor، وظيفته)
+        // ========= launcher =========
         val launcher = LSPLauncher.createServerLauncher(
-            server, 
-            serverIn, 
-            serverOut, 
+            server,
+            serverIn,
+            serverOut,
             executor
         ) { it }
 
-        // 4. الربط الحيوي:
-        // السيرفر يحتاج الـ RemoteProxy (الذي هو واجهة العميل للطرف الآخر)
+        // مهم جداً: الربط الصحيح
         server.connect(launcher.remoteProxy)
-      
-        // 5. بدء الاستماع من جهة السيرفر
-        launcher.startListening()
 
-        // 6. تشغيل Launcher للعميل أيضاً لاستقبال الردود
-        val clientLauncher = LSPLauncher.createClientLauncher(
-            client,
-            clientIn,
-            clientOut,
-            executor
-        ) { it }
-        clientLauncher.startListening()
+        // ربط client بالـ proxy
+        lspClient.server = launcher.remoteProxy
 
-        this.lspClient = client
-        this.lspServer = server
-        
-        android.util.Log.d("LSP", "LSP Bridge established using ServerLauncher")
+        // تشغيل listening
+        launcherFuture = launcher.startListening()
+
+        client = lspClient
+
+        Log.d("LSP", "LSP started successfully")
+
+        // ========= initialize =========
+        lspClient.initialize(rootPath).thenAccept {
+            lspClient.initialized()
+        }
+    }
+
+    fun stop() {
+        client?.shutdown()
+        launcherFuture?.cancel(true)
+        executor.shutdownNow()
+        client = null
     }
 }
