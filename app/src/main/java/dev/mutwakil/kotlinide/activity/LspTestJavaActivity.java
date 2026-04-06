@@ -80,7 +80,7 @@ public class LspTestJavaActivity extends AppCompatActivity {
         String path = "textmate/QuietLight.tmTheme";
         themeRegistry.loadTheme(new ThemeModel(FileProviderRegistry.getInstance().tryGetInputStream(path)),
                 "quitelight"
-        ));
+        );
         themeRegistry.setTheme("quietlight");
         editor.setColorScheme(TextMateColorScheme.create(themeRegistry));
     }
