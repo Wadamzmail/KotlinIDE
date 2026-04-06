@@ -94,7 +94,7 @@ public class KotlinLanguage extends EmptyTextMateLanguage implements Language {
     return INTERRUPTION_LEVEL_SLIGHT;
   }
 
-  @Override
+    @Override
   public void requireAutoComplete(
       @NonNull ContentReference content,
       @NonNull CharPosition position,
@@ -110,7 +110,11 @@ public class KotlinLanguage extends EmptyTextMateLanguage implements Language {
         }
     }
 
-    // 2. إعداد المسار (URI) - يفضل أن يكون ديناميكياً وليس Hardcoded
+    // حساب البادئة (Prefix) لمعرفة كم حرفاً سنستبدل من الكلمة الحالية
+    final String prefix = CompletionHelper.computePrefix(content, position, this::isAutoCompleteChar);
+    final int prefixLength = prefix.length();
+
+    // 2. إعداد المسار (URI)
     String currentFileUri = "file:///storage/emulated/0/.kotlinide/test/com/test/Main.kt";    
 
     // 3. التحقق من جاهزية الـ LSP Client
@@ -119,45 +123,45 @@ public class KotlinLanguage extends EmptyTextMateLanguage implements Language {
     }
 
     try {
-        // 4. طلب الإكمال من السيرفر (LSP Position: line is 0-based, character is 0-based)
-        CompletableFuture<Either<List<CompletionItem>, CompletionList>> future = 
+        // 4. طلب الإكمال من السيرفر
+        CompletableFuture<Either<List<org.eclipse.lsp4j.CompletionItem>, CompletionList>> future = 
             dev.mutwakil.kotlinide.lsp.LSPManager.lspClient.getCompletions(
                 currentFileUri, 
                 position.line, 
                 position.column
             );
 
-        // الانتظار للحصول على النتائج (يفضل وضع Timeout)
-        Either<List<CompletionItem>, CompletionList> result = future.get();
+        Either<List<org.eclipse.lsp4j.CompletionItem>, CompletionList> result = future.get();
         
-        List<CompletionItem> lspItems;
+        List<org.eclipse.lsp4j.CompletionItem> lspItems;
         if (result.isLeft()) {
             lspItems = result.getLeft();
         } else {
             lspItems = result.getRight().getItems();
         }
 
-        // 5. تحويل نتائج LSP إلى نتائج Sora Editor
+        // 5. تحويل نتائج LSP إلى SimpleCompletionItem الخاص بـ Sora
         if (lspItems != null && !lspItems.isEmpty()) {
-            // حساب الـ prefix لتصفية النتائج إذا لزم الأمر
-            final String prefix = CompletionHelper.computePrefix(content, position, this::isAutoCompleteChar);
             
-            for (CompletionItem lspItem : lspItems) {
-                // التأكد من أن العملية لم تُلغَ من قبل المستخدم أثناء الكتابة
+            for (org.eclipse.lsp4j.CompletionItem lspItem : lspItems) {
                 if (publisher.isCancelled()) {
                     throw new CompletionCancelledException();
                 }
 
-                // إنشاء عنصر إكمال لمحرر Sora
-                io.github.rosemoe.sora.lang.completion.CompletionItem soraItem = 
-                    new io.github.rosemoe.sora.lang.completion.CompletionItem(
-                        lspItem.getLabel(),          /* النص الظاهر */
-                        lspItem.getDetail() != null ? lspItem.getDetail() : "Kotlin", /* الوصف */
-                        lspItem.getInsertText() != null ? lspItem.getInsertText() : lspItem.getLabel() /* النص الذي سيُدرج */
+                // تحديد النص الذي سيتم إدراجه (يفضل label إذا كان insertText فارغاً)
+                String commitText = lspItem.getInsertText() != null ? lspItem.getInsertText() : lspItem.getLabel();
+                String label = lspItem.getLabel();
+                String desc = lspItem.getDetail() != null ? lspItem.getDetail() : "Kotlin";
+
+                // استخدام SimpleCompletionItem
+                // البارامترات: (العنوان، الوصف، طول البادئة المستبدلة، النص النهائي)
+                io.github.rosemoe.sora.lang.completion.SimpleCompletionItem soraItem = 
+                    new io.github.rosemoe.sora.lang.completion.SimpleCompletionItem(
+                        label, 
+                        desc, 
+                        prefixLength, 
+                        commitText
                     );
-                
-                // إضافة الأيقونة أو النوع بناءً على Kind (اختياري)
-                // soraItem.desc(lspItem.getKind().toString());
 
                 publisher.addItem(soraItem);
             }
@@ -167,6 +171,7 @@ public class KotlinLanguage extends EmptyTextMateLanguage implements Language {
         android.util.Log.e("LSP_COMPLETION", "Error fetching completions: " + e.getMessage());
     }
   }
+
 
 
   public boolean isAutoCompleteChar(char p1) {

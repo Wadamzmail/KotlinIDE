@@ -30,6 +30,6 @@ dependencies {
    api libs.soraEditor.treesitter
    api libs.soraEditor.textmate
    api libs.soraEditor.lsp
-   //api (libs.org.eclipse.lsp4j.lsp4j)
-   //api (libs.org.eclipse.lsp4j.jsonrpc)
+   api (libs.org.eclipse.lsp4j.lsp4j)
+   api (libs.org.eclipse.lsp4j.jsonrpc)
 }
