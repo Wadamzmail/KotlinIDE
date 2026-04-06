@@ -53,6 +53,7 @@ object LSPManager {
         // السيرفر يحتاج الـ RemoteProxy (الذي هو واجهة العميل للطرف الآخر)
         server.connect(launcher.remoteProxy)
       
+
         // 5. بدء الاستماع من جهة السيرفر
         launcher.startListening()
 

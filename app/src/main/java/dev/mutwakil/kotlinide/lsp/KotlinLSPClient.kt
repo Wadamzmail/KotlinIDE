@@ -34,10 +34,10 @@ class KotlinLSPClient : LanguageClient {
         server = KotlinLanguageServer(notifier)
 
         // تعديل هنا: نحتاج لتعريف الـ Launcher بوضوح
-        val launcher = LSPLauncher.createClientLauncher(
-            this, 
-            clientIn, 
-            clientOut, 
+        val launcher = LSPLauncher.createServerLauncher(
+            server, 
+            serverIn, 
+            serverOut, 
             clientExecutor
         ) { it }
 
